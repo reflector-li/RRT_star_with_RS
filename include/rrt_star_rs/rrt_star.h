@@ -94,6 +94,9 @@ private:
     StateNode::Ptr steer(const StateNode::Ptr &nearest_node,Vec3d rand_pose);
     bool checkPathCollision(const VectorVec3d &path);
     std::vector<int> findNearNodes(const StateNode::Ptr &node);
+    void resetParent(StateNode::Ptr &node, const std::vector<int> &indexs);
+    void rewire(const StateNode::Ptr &node, const std::vector<int> &indexs);
+    void tryGoalPath(const StateNode::Ptr &node);
 
 
 

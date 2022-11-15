@@ -50,6 +50,8 @@ public:
     // for RRT algorithm
     double move_step_size;
     int max_iter;
+    double connect_circle_dist;
+    double expand_dist;
 
 
   constants(/* args */){};

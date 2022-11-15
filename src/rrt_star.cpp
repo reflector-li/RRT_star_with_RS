@@ -356,8 +356,10 @@ StateNode::Ptr RRTStar::steer(const StateNode::Ptr &nearest_node,Vec3d rand_pose
   double length;
   VectorVec3d rs_path = rs_path_ptr_->GetRSPath(nearest_node->state_,rand_pose,params_.move_step_size,length);
   StateNode::Ptr new_node;
+  new_node->state_ = rand_pose;
   new_node->intermediate_states_ = rs_path;
   new_node->parent_node_ = nearest_node;
+  new_node->g_cost_ = nearest_node->g_cost_ + length;
 
   auto begin = new_node->intermediate_states_.begin();
   new_node->intermediate_states_.erase(begin);
@@ -375,8 +377,66 @@ bool RRTStar::checkPathCollision(const VectorVec3d &path){
 }
 
 std::vector<int> RRTStar::findNearNodes(const StateNode::Ptr &node){
-  
+    int nnode = RRTtree.size() + 1;
+    double r = params_.connect_circle_dist * sqrt(log(nnode)/nnode);
+    r = std::min(r,params_.expand_dist);
+    std::vector<int> result;
+    for(int i = 0;i<RRTtree.size();i++){
+        if(RRTtree[i] != nullptr){
+            if((RRTtree[i]->state_.head(2) - node->state_.head(2)).norm()<=r)
+                result.push_back(i);
+        }
+    }
+    return result;
 }
+
+void RRTStar::resetParent(StateNode::Ptr &node, const std::vector<int> &indexs){
+    if(indexs.empty())
+        return ;
+    double min_length = 1e9;
+    int min_index = -1;
+    VectorVec3d min_intermediate_states;
+    for(int i = 0;i<indexs.size();i++){
+        double length;
+        VectorVec3d temp_path = rs_path_ptr_->GetRSPath(RRTtree[indexs[i]]->state_,node->state_,params_.move_step_size,length);
+        if(!checkPathCollision(temp_path))
+        {
+            double new_path_length = RRTtree[indexs[i]]->g_cost_ + length;
+            if(new_path_length < min_length){
+                min_intermediate_states = temp_path;
+                min_length = new_path_length;
+                min_index = i;
+            } 
+        }
+    }
+    node->parent_node_ = RRTtree[min_index];
+    node->g_cost_ = min_length;
+    node->intermediate_states_ = min_intermediate_states;
+}
+
+
+void RRTStar::rewire(const StateNode::Ptr &node, const std::vector<int> &indexs){
+    if(indexs.empty())
+        return ;
+    for(int i = 0;i<indexs.size();i++){
+        double length;
+        VectorVec3d temp_path = rs_path_ptr_->GetRSPath(node->state_,RRTtree[indexs[i]]->state_,params_.move_step_size,length);
+        if(!checkPathCollision(temp_path)){
+            double temp_length = node->g_cost_ + length;
+            if(temp_length < RRTtree[indexs[i]]->g_cost_){
+                RRTtree[indexs[i]]->parent_node_ = node;
+                RRTtree[indexs[i]]->intermediate_states_ = temp_path;
+                RRTtree[indexs[i]]->g_cost_ = temp_length;
+            }
+        }
+    }
+}
+
+void RRTStar::tryGoalPath(const StateNode::Ptr &node){
+    StateNode
+}
+
+
 
 
 int RRTStar::Search(){

@@ -44,6 +44,7 @@ struct StateNode {
     explicit StateNode(const Vec3d &state) {
         state_ = state;
         parent_node_ = nullptr;
+        g_cost_ = 0;
     }
 
     void Reset() {
