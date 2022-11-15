@@ -1,30 +1,3 @@
-/*******************************************************************************
- * Software License Agreement (BSD License)
- *
- * Copyright (c) 2022 Zhang Zhimeng
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
- * SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
- * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
- * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- ******************************************************************************/
-
 #include "rrt_star_rs/rrt_star_rs_flow.h"
 
 #include <nav_msgs/Path.h>
@@ -35,20 +8,53 @@
 
 
 RRTStarRSFlow::RRTStarRSFlow(ros::NodeHandle &nh) {
+    constants_.front_hang_length = nh.param("planner/front_hang_length",0.96);
+    constants_.rear_hang_length = nh.param("planner/rear_hang_length",0.929);
+    constants_.wheel_base = nh.param("planner/wheel_base", 2.8);
+    constants_.vehicle_length = constants_.front_hang_length + constants_.rear_hang_length + constants_.wheel_base;
+    constants_.vehicle_width = nh.param("planner/vehicle_width",1.942);
+    constants_.vel_max = nh.param("planner/velocity_max",2.5); // m/s 
+    constants_.vel_min = nh.param("planner/velocity_min",2.5);// all positive number;
+    constants_.accel_limit = nh.param("planner/acceleration_limit",1); // m/s^2
+    constants_.decel_limit = nh.param("planner/deceleration_limit",1); 
+    constants_.steering_angle = nh.param("planner/steering_angle", 0.75); // rad
+    constants_.ang_vel_max = nh.param("planner/angular_velocity_max",0.5);// rad/s
+    constants_.radius_thres = nh.param("planner/radius_thres",10);
+    constants_.safety_distance = nh.param("planner/safety_distance",0.1);
+    constants_.move_step_size = nh.param("planner/move_step_size",0.5);
+    constants_.max_iter = nh.param("planner/max_iter",200);
+    constants_.connect_circle_dist = nh.param("planner/connect_circle_dist",50);
+    constants_.expand_dist = nh.param("planner/expand_dist",30);
+    constants_.goal_dist_margin = nh.param("planner/goal_dist_margin",0.5);
+    constants_.goal_yaw_margin = nh.param("planner/goal_yaw_margin",0.3183);
 
-   
+
+    // map config infomation
+    constants_.map_grid_resolution = nh.param("planner/map_grid_resolution",0.05);
+    constants_.csv_path = nh.param<std::string>("csv_path", "/home/linkx/lkx_ws/src/tpcap/TPCAP_benchmarks/Case1.csv");
+    constants_.case_order = nh.param("case_order",22);
+    constants_.radius_min = constants_.wheel_base / tan(constants_.steering_angle);
+
+
+    kinodynamic_rrt_star_ptr_ = std::make_shared<RRTStar>(constants_);
+
+    path_pub_ = n.advertise<nav_msgs::Path>("/searched_path", 1);
+    searched_tree_pub_ = n.advertise<visualization_msgs::Marker>("/searched_tree", 1);
+    vehicle_path_pub_ = n.advertise<visualization_msgs::MarkerArray>("/vehicle_path", 1);
+    pose_pub_ = n.advertise<visualization_msgs::MarkerArray>("/pose_array",1);
 }
 
 void RRTStarRSFlow::Run() {
      
-     // 创建栅格地图，起点位姿和终点位姿，其中使用cv::Mat 作为栅格地图
-     kinodynamic_rrt_star_ptr_->Init(constants_);
+    kinodynamic_rrt_star_ptr_->Init(constants_);
+    int best_index = kinodynamic_rrt_star_ptr_->Search();
 
-    if (kinodynamic_rrt_star_ptr_->Search() != -1) {
+    if ( best_index != -1) {
         
-        path_ = kinodynamic_rrt_star_ptr_->getPath();
-        
+        path_ = kinodynamic_rrt_star_ptr_->getPath(best_index);
+   
     }
+    kinodynamic_rrt_star_ptr_->GetRRTtree();
 }
 
 
@@ -60,13 +66,13 @@ void RRTStarRSFlow::PublishRviz()
     PublishPath(path_);
     PublishVehiclePath(path_, kinodynamic_rrt_star_ptr_->vehicle_length_, 
                         kinodynamic_rrt_star_ptr_->vehicle_width_,5u);
-    PublishSearchedTree(kinodynamic_rrt_star_ptr_->GetRRTtree());
+    PublishSearchedTree(kinodynamic_rrt_star_ptr_->line_tree);
     
 }
 
 
 
-void RRTStarRSFlow::PublishPath(const VectorVec4d &path) {
+void RRTStarRSFlow::PublishPath(const VectorVec3d &path) {
     nav_msgs::Path nav_path;
 
     geometry_msgs::PoseStamped pose_stamped;
@@ -88,7 +94,7 @@ void RRTStarRSFlow::PublishPath(const VectorVec4d &path) {
     path_pub_.publish(nav_path);
 }
 
-void RRTStarRSFlow::PublishVehiclePath(const VectorVec4d &path, double length,
+void RRTStarRSFlow::PublishVehiclePath(const VectorVec3d &path, double length,
                                          double width, unsigned int vehicle_interval = 5u) {
     visualization_msgs::MarkerArray vehicle_array;
 

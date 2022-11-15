@@ -25,8 +25,8 @@
  * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
-#ifndef HYBRID_A_STAR_STATE_NODE_H
-#define HYBRID_A_STAR_STATE_NODE_H
+#ifndef _RRT_STAR_STATE_NODE_H
+#define _RRT_STAR_STATE_NODE_H
 
 #include "type.h"
 
@@ -60,4 +60,4 @@ struct StateNode {
     VectorVec3d intermediate_states_;
 };
 
-#endif //HYBRID_A_STAR_STATE_NODE_H
+#endif 

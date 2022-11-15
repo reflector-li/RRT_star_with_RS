@@ -25,8 +25,8 @@
  * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
-#ifndef HYBRID_A_STAR_RS_PATH_H
-#define HYBRID_A_STAR_RS_PATH_H
+#ifndef _RS_PATH_H
+#define _RS_PATH_H
 
 #include "type.h"
 

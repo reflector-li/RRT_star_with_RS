@@ -25,8 +25,8 @@
  * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
-#ifndef HYBRID_A_STAR_TYPE_H
-#define HYBRID_A_STAR_TYPE_H
+#ifndef _RRT_STAR_TYPE_H_
+#define _RRT_STAR_TYPE_H_
 
 #include <vector>
 #include <Eigen/Core>

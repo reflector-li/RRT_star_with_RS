@@ -57,6 +57,8 @@ void RRTStar::Init(constants &params)
     goal_state_ = params_.goal_state_original;
     start_state_ = params_.start_state_original;
 
+    root_node_ptr_ = new StateNode(start_state_);
+
     int obs_num = static_cast<int>(map_raw_data[6]);
     ROS_INFO("scene has %d obstacles",obs_num);
 
@@ -340,7 +342,7 @@ int RRTStar::getNearestIndex(const Vec3d &pose){
   double closest_dist = 1e9;
   for(int i = 0;i<RRTtree.size();i++){
     if(RRTtree[i] != nullptr){
-      std::cout<<"check whether nullptr exist!"<<std::endl;
+    //   std::cout<<"check whether nullptr exist!"<<std::endl;
       double dist = (RRTtree[i]->state_.head(2) -pose.head(2)).norm();
       if(dist<closest_dist){
         closest_dist = dist;
@@ -355,8 +357,7 @@ int RRTStar::getNearestIndex(const Vec3d &pose){
 StateNode::Ptr RRTStar::steer(const StateNode::Ptr &nearest_node,Vec3d rand_pose){
   double length;
   VectorVec3d rs_path = rs_path_ptr_->GetRSPath(nearest_node->state_,rand_pose,params_.move_step_size,length);
-  StateNode::Ptr new_node;
-  new_node->state_ = rand_pose;
+  StateNode::Ptr new_node = new StateNode(rand_pose);
   new_node->intermediate_states_ = rs_path;
   new_node->parent_node_ = nearest_node;
   new_node->g_cost_ = nearest_node->g_cost_ + length;
@@ -370,7 +371,7 @@ StateNode::Ptr RRTStar::steer(const StateNode::Ptr &nearest_node,Vec3d rand_pose
 bool RRTStar::checkPathCollision(const VectorVec3d &path){
     for (const auto &pose: path)
       if (BeyondBoundary(pose.head(2)) || !CheckCollision(pose.x(), pose.y(), pose.z())) {
-          ROS_WARN("random node path failed!");
+        //   ROS_WARN("random node path failed!");
           return true;
       };
     return false;
@@ -409,6 +410,7 @@ void RRTStar::resetParent(StateNode::Ptr &node, const std::vector<int> &indexs){
             } 
         }
     }
+    min_intermediate_states.erase(min_intermediate_states.begin());
     node->parent_node_ = RRTtree[min_index];
     node->g_cost_ = min_length;
     node->intermediate_states_ = min_intermediate_states;
@@ -424,6 +426,7 @@ void RRTStar::rewire(const StateNode::Ptr &node, const std::vector<int> &indexs)
         if(!checkPathCollision(temp_path)){
             double temp_length = node->g_cost_ + length;
             if(temp_length < RRTtree[indexs[i]]->g_cost_){
+                temp_path.erase(temp_path.begin());
                 RRTtree[indexs[i]]->parent_node_ = node;
                 RRTtree[indexs[i]]->intermediate_states_ = temp_path;
                 RRTtree[indexs[i]]->g_cost_ = temp_length;
@@ -433,11 +436,42 @@ void RRTStar::rewire(const StateNode::Ptr &node, const std::vector<int> &indexs)
 }
 
 void RRTStar::tryGoalPath(const StateNode::Ptr &node){
-    StateNode
+    double length;
+    VectorVec3d temp_path = rs_path_ptr_->GetRSPath(node->state_,goal_state_,params_.move_step_size,length);
+    if(!checkPathCollision(temp_path)){
+        temp_path.erase(temp_path.begin());
+        StateNode::Ptr goal_node;
+        goal_node->state_ = goal_state_;
+        goal_node->g_cost_ = node->g_cost_ + length;
+        goal_node->intermediate_states_ = temp_path;
+        RRTtree.emplace_back(goal_node);
+    }
 }
 
 
-
+int RRTStar::searchBestGoalNode(){
+    if(RRTtree.empty())
+       return -1;
+    std::vector<int> best_node_indexs;
+    for(int i = 0;i<RRTtree.size();i++){
+        if((RRTtree[i]->state_.head(2) - goal_state_.head(2)).norm() < params_.goal_dist_margin 
+        && fabs(RRTtree[i]->state_[2] - goal_state_[2])<params_.goal_yaw_margin )
+        {
+            best_node_indexs.push_back(i);
+        }
+    }
+    if(best_node_indexs.empty())
+       return -1;
+    double min_cost = 1e9;
+    int best_index = -1;
+    for(auto j:best_node_indexs){
+        if(RRTtree[j]->g_cost_ < min_cost){
+            min_cost = RRTtree[j]->g_cost_;
+            best_index = j;
+        }
+    }
+    return best_index;
+}
 
 int RRTStar::Search(){
   RRTtree.push_back(root_node_ptr_);
@@ -455,6 +489,7 @@ int RRTStar::Search(){
       rewire(new_node,near_indexes);
       tryGoalPath(new_node);
     }
+    count++;
   }
   std::cout<<"reached max iteration"<<std::endl;
 
@@ -462,6 +497,40 @@ int RRTStar::Search(){
   if(last_index != -1)
      return last_index;
   return -1;
+}
+
+VectorVec3d RRTStar::getPath(int best_index ) const{
+  std::vector<StateNode::Ptr> node_ptr_lists;
+  StateNode::Ptr node_ptr = RRTtree[best_index];
+  while(node_ptr != nullptr){
+    node_ptr_lists.emplace_back(node_ptr);
+    node_ptr = node_ptr->parent_node_;
+  }
+  std::reverse(node_ptr_lists.begin(),node_ptr_lists.end());
+  VectorVec3d path;
+  for(auto ptr:node_ptr_lists){
+    path.insert(path.end(),ptr->intermediate_states_.begin(),ptr->intermediate_states_.end());
+  }
+  return path;
+}
+
+void RRTStar::GetRRTtree(){
+    line_tree.clear();
+    Vec4d point_pair;
+    for(auto &ptr:RRTtree){
+        if(ptr != nullptr && ptr->parent_node_ != nullptr){
+            int pt_number = ptr->intermediate_states_.size();
+            for(int i = 0;i<pt_number-1;i++){
+                point_pair.head(2) = ptr->intermediate_states_[i].head(2);
+                point_pair.tail(2) = ptr->intermediate_states_[i+1].head(2);
+                line_tree.emplace_back(point_pair);
+            }
+            point_pair.head(2) = ptr->parent_node_->state_.head(2);
+            point_pair.tail(2) = ptr->intermediate_states_[0].head(2);
+            line_tree.emplace_back(point_pair);
+        }
+    }
+
 }
 
 

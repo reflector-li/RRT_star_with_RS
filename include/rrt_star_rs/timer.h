@@ -25,8 +25,8 @@
  * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
-#ifndef HYBRID_A_STAR_TIMER_H
-#define HYBRID_A_STAR_TIMER_H
+#ifndef _RRT_STAR_TIMER_H
+#define _RRT_STAR_TIMER_H
 
 #include <string>
 #include <iostream>

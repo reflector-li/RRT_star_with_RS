@@ -52,6 +52,8 @@ public:
     int max_iter;
     double connect_circle_dist;
     double expand_dist;
+    double goal_dist_margin;
+    double goal_yaw_margin;
 
 
   constants(/* args */){};

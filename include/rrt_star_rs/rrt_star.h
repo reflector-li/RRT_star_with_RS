@@ -29,6 +29,7 @@
 #define _RRT_STAR_H_
 
 #include <ros/ros.h>
+#include <iostream>
 #include "constants.h"
 #include "rs_path.h"
 #include "state_node.h"
@@ -53,6 +54,7 @@ public:
     double vehicle_length_, vehicle_width_;
     constants params_;
     std::shared_ptr<cv::Mat> img_ptr_;
+    VectorVec4d line_tree;
 
     RRTStar() = delete;
 
@@ -63,9 +65,9 @@ public:
     void Init(constants &params);
     int Search();
 
-    VectorVec4d GetRRTtree();
+    void GetRRTtree();
 
-    VectorVec4d getPath() const;
+    VectorVec3d getPath(int best_index) const;
 
     void SetVehicleShape(double front_hang_length, double rear_hang_length, double wheel_base, double vehicle_width);
 
@@ -97,6 +99,8 @@ private:
     void resetParent(StateNode::Ptr &node, const std::vector<int> &indexs);
     void rewire(const StateNode::Ptr &node, const std::vector<int> &indexs);
     void tryGoalPath(const StateNode::Ptr &node);
+    int searchBestGoalNode();
+
 
 
 

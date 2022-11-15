@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.10.2)
 project(rrt_star_rs)
 
 # set(OpenCV_DIR /usr/local/share/OpenCV)
@@ -59,3 +59,6 @@ target_link_libraries(
 
 add_executable(rrt_search app/search.cpp)
 target_link_libraries(rrt_search RRTStarRS_LIB yaml-cpp yaml-cpp)
+
+add_executable(test_node app/test_node.cpp)
+target_link_libraries(test_node RRTStarRS_LIB)

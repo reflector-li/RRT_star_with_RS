@@ -32,6 +32,7 @@
 #include "type.h"
 #include <ros/ros.h>
 #include "constants.h"
+#include <iostream>
 
 class RRTStarRSFlow {
 public:
@@ -47,11 +48,11 @@ public:
     constants constants_;
 
 private:
-    void PublishPath(const VectorVec4d &path);
+    void PublishPath(const VectorVec3d &path);
 
     void PublishSearchedTree(const VectorVec4d &searched_tree);
 
-    void PublishVehiclePath(const VectorVec4d &path, double width,
+    void PublishVehiclePath(const VectorVec3d &path, double width,
                             double length, unsigned int vehicle_interval);
 
     void PublishStartAndGoalPose(const Vec3d &start_pose, const Vec3d &goal_pose);
@@ -63,7 +64,7 @@ private:
     ros::Publisher vehicle_path_pub_;
     ros::Publisher pose_pub_;
 
-    VectorVec4d path_;
+    VectorVec3d path_;
 
     ros::Time timestamp_;
 };
