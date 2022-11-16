@@ -47,6 +47,7 @@ add_library(
   src/rrt_star.cpp
   src/rrt_star_rs_flow.cpp
   src/file_tools.cpp
+  src/velocity_set.cpp
 )
 
 target_link_libraries(

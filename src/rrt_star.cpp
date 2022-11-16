@@ -406,10 +406,11 @@ void RRTStar::resetParent(StateNode::Ptr &node, const std::vector<int> &indexs){
             if(new_path_length < min_length){
                 min_intermediate_states = temp_path;
                 min_length = new_path_length;
-                min_index = i;
+                min_index = indexs[i];
             } 
         }
     }
+    // ROS_INFO("reselect parent node!");
     min_intermediate_states.erase(min_intermediate_states.begin());
     node->parent_node_ = RRTtree[min_index];
     node->g_cost_ = min_length;
@@ -426,6 +427,7 @@ void RRTStar::rewire(const StateNode::Ptr &node, const std::vector<int> &indexs)
         if(!checkPathCollision(temp_path)){
             double temp_length = node->g_cost_ + length;
             if(temp_length < RRTtree[indexs[i]]->g_cost_){
+                // ROS_INFO("rewire!");
                 temp_path.erase(temp_path.begin());
                 RRTtree[indexs[i]]->parent_node_ = node;
                 RRTtree[indexs[i]]->intermediate_states_ = temp_path;
@@ -439,11 +441,12 @@ void RRTStar::tryGoalPath(const StateNode::Ptr &node){
     double length;
     VectorVec3d temp_path = rs_path_ptr_->GetRSPath(node->state_,goal_state_,params_.move_step_size,length);
     if(!checkPathCollision(temp_path)){
+        std::cout<<"try goal path!"<<std::endl;
         temp_path.erase(temp_path.begin());
-        StateNode::Ptr goal_node;
-        goal_node->state_ = goal_state_;
+        StateNode::Ptr goal_node = new StateNode(goal_state_);
         goal_node->g_cost_ = node->g_cost_ + length;
         goal_node->intermediate_states_ = temp_path;
+        goal_node->parent_node_ = node;
         RRTtree.emplace_back(goal_node);
     }
 }
@@ -475,6 +478,7 @@ int RRTStar::searchBestGoalNode(){
 
 int RRTStar::Search(){
   RRTtree.push_back(root_node_ptr_);
+  tryGoalPath(root_node_ptr_);
   int count = 0;
   while(count<params_.max_iter){
     std::cout<<"Iter: "<<count<<", number of nodes: "<<RRTtree.size()<<std::endl;
@@ -499,7 +503,7 @@ int RRTStar::Search(){
   return -1;
 }
 
-VectorVec3d RRTStar::getPath(int best_index ) const{
+VectorVec4d RRTStar::getPath(int best_index ) const{
   std::vector<StateNode::Ptr> node_ptr_lists;
   StateNode::Ptr node_ptr = RRTtree[best_index];
   while(node_ptr != nullptr){
@@ -511,7 +515,25 @@ VectorVec3d RRTStar::getPath(int best_index ) const{
   for(auto ptr:node_ptr_lists){
     path.insert(path.end(),ptr->intermediate_states_.begin(),ptr->intermediate_states_.end());
   }
-  return path;
+  
+  VectorVec4d final_path;
+  Vec4d start_point;
+  start_point.head(3) = path.at(0);
+  start_point[3] = 0;
+  final_path.emplace_back(start_point);
+  for(int i = 1;i<path.size();i++){
+    Vec4d point;
+    point.head(3) = path.at(i);
+    double tau = atan2(path.at(i)[1] - path.at(i-1)[1], path.at(i)[0] - path.at(i-1)[0]);
+    if(fabs(Mod2Pi(path.at(i)[2]) - tau)<M_PI_2)
+        point[3] = 1;
+    else
+        point[3] = -1;
+    final_path.emplace_back(point);
+  }
+
+  
+  return final_path;
 }
 
 void RRTStar::GetRRTtree(){
@@ -530,7 +552,14 @@ void RRTStar::GetRRTtree(){
             line_tree.emplace_back(point_pair);
         }
     }
+}
 
+void RRTStar::GetAllPoint(){
+    for(auto &ptr:RRTtree){
+        if(ptr != nullptr){
+            candidate_points.push_back(ptr->state_);
+        }
+    }
 }
 
 

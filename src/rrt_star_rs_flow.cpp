@@ -37,9 +37,11 @@ RRTStarRSFlow::RRTStarRSFlow(ros::NodeHandle &nh) {
 
 
     kinodynamic_rrt_star_ptr_ = std::make_shared<RRTStar>(constants_);
+    Trajectory_ptr = std::make_shared<Trajectory>(constants_);
 
     path_pub_ = n.advertise<nav_msgs::Path>("/searched_path", 1);
     searched_tree_pub_ = n.advertise<visualization_msgs::Marker>("/searched_tree", 1);
+    point_arrow_pub_ = n.advertise<visualization_msgs::MarkerArray>("/point_arrow",1);
     vehicle_path_pub_ = n.advertise<visualization_msgs::MarkerArray>("/vehicle_path", 1);
     pose_pub_ = n.advertise<visualization_msgs::MarkerArray>("/pose_array",1);
 }
@@ -52,9 +54,13 @@ void RRTStarRSFlow::Run() {
     if ( best_index != -1) {
         
         path_ = kinodynamic_rrt_star_ptr_->getPath(best_index);
-   
+        Trajectory_ptr->SetPoints(path_);
+        Trajectory_ptr->SetVelocity();
+        Trajectory_ptr->Plot();
+        Trajectory_ptr->PlotVelocity();
     }
     kinodynamic_rrt_star_ptr_->GetRRTtree();
+    kinodynamic_rrt_star_ptr_->GetAllPoint();
 }
 
 
@@ -66,13 +72,14 @@ void RRTStarRSFlow::PublishRviz()
     PublishPath(path_);
     PublishVehiclePath(path_, kinodynamic_rrt_star_ptr_->vehicle_length_, 
                         kinodynamic_rrt_star_ptr_->vehicle_width_,5u);
+
     PublishSearchedTree(kinodynamic_rrt_star_ptr_->line_tree);
-    
+    PublishPointArrow(kinodynamic_rrt_star_ptr_->candidate_points);
 }
 
 
 
-void RRTStarRSFlow::PublishPath(const VectorVec3d &path) {
+void RRTStarRSFlow::PublishPath(const VectorVec4d &path) {
     nav_msgs::Path nav_path;
 
     geometry_msgs::PoseStamped pose_stamped;
@@ -94,7 +101,7 @@ void RRTStarRSFlow::PublishPath(const VectorVec3d &path) {
     path_pub_.publish(nav_path);
 }
 
-void RRTStarRSFlow::PublishVehiclePath(const VectorVec3d &path, double length,
+void RRTStarRSFlow::PublishVehiclePath(const VectorVec4d &path, double length,
                                          double width, unsigned int vehicle_interval = 5u) {
     visualization_msgs::MarkerArray vehicle_array;
 
@@ -161,9 +168,38 @@ void RRTStarRSFlow::PublishSearchedTree(const VectorVec4d &searched_tree) {
         point.z = 0.0;
         tree_list.points.emplace_back(point);
     }
-
     searched_tree_pub_.publish(tree_list);
 }
+
+void RRTStarRSFlow::PublishPointArrow(const VectorVec3d &pt_lists){
+    visualization_msgs::MarkerArray arrow_array;
+    visualization_msgs::Marker arrow_marker;
+    arrow_marker.header.frame_id = "world";
+    arrow_marker.header.stamp = ros::Time();
+    arrow_marker.type = visualization_msgs::Marker::ARROW;
+    arrow_marker.action = visualization_msgs::Marker::ADD;
+    arrow_marker.scale.x = 0.6;
+    arrow_marker.scale.y = 0.2;
+    arrow_marker.scale.z = 0.1;
+    arrow_marker.color.r = 1.0;
+    arrow_marker.color.a = 1.0;
+    
+    int count  = 1;
+    for(const auto &pt:pt_lists){
+        arrow_marker.id = count;
+        arrow_marker.pose.position.x = pt[0];
+        arrow_marker.pose.position.y = pt[1];
+        arrow_marker.pose.position.z = 0.0;
+        arrow_marker.pose.orientation = tf::createQuaternionMsgFromYaw(pt[2]);
+        arrow_array.markers.push_back(arrow_marker);
+        count++;
+    }
+
+    point_arrow_pub_.publish(arrow_array);
+
+}
+
+
 
 void RRTStarRSFlow::PublishStartAndGoalPose(const Vec3d &start_pose, const Vec3d &goal_pose)
 {

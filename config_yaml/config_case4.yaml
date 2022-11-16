@@ -6,11 +6,11 @@ planner/wheel_base: 2.8
 planner/vehicle_width: 1.942
 
 planner/map_grid_resolution: 0.05
-csv_path: "/home/linkx/lkx_ws/src/rrt_star_rs/benchmarks/Case10.csv"
-case_order: 10
+csv_path: "/home/linkx/lkx_ws/src/rrt_star_rs/benchmarks/Case4.csv"
+case_order: 4
 planner/safety_distance: 0.02
 planner/move_step_size: 0.5
-planner/max_iter: 1000
+planner/max_iter: 500
 planner/connect_circle_dist: 50
 planner/expand_dist: 30
 planner/goal_dist_margin: 0.5

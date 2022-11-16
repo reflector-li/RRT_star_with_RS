@@ -1,0 +1,9 @@
+image: /home/linkx/lkx_ws/src/tpcap/TPCAP_scene/Case20.png
+resolution: 0.050000
+origin:
+  - -23.6069651741293
+  - -27.893015437903099
+  - 0
+occupied_thresh: 0.1
+free_thresh: 0.05
+negate: 0

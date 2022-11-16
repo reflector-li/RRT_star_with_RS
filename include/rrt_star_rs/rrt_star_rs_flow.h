@@ -32,6 +32,7 @@
 #include "type.h"
 #include <ros/ros.h>
 #include "constants.h"
+#include "velocity_set.h"
 #include <iostream>
 
 class RRTStarRSFlow {
@@ -45,26 +46,27 @@ public:
     void PublishRviz();
 
     std::shared_ptr<RRTStar> kinodynamic_rrt_star_ptr_;
+    std::shared_ptr<Trajectory> Trajectory_ptr;
     constants constants_;
 
 private:
-    void PublishPath(const VectorVec3d &path);
+    void PublishPath(const VectorVec4d &path);
+    void PublishVehiclePath(const VectorVec4d &path, double width,
+                            double length, unsigned int vehicle_interval);
+    void PublishStartAndGoalPose(const Vec3d &start_pose, const Vec3d &goal_pose);
 
     void PublishSearchedTree(const VectorVec4d &searched_tree);
-
-    void PublishVehiclePath(const VectorVec3d &path, double width,
-                            double length, unsigned int vehicle_interval);
-
-    void PublishStartAndGoalPose(const Vec3d &start_pose, const Vec3d &goal_pose);
+    void PublishPointArrow(const VectorVec3d &pt_lists);
 
 private:
     ros::NodeHandle n;
     ros::Publisher path_pub_;
     ros::Publisher searched_tree_pub_;
+    ros::Publisher point_arrow_pub_;
     ros::Publisher vehicle_path_pub_;
     ros::Publisher pose_pub_;
 
-    VectorVec3d path_;
+    VectorVec4d path_;
 
     ros::Time timestamp_;
 };
