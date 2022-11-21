@@ -8,7 +8,7 @@
     <node pkg="tf2_ros" type="static_transform_publisher" name="world_to_map"
           args="0 0 0 0 0 0 /world /map"/>
 
-    <node pkg="map_server" type="map_server" name="map_server" args="$(find rrt_star_rs)/map_yaml/Case$(arg case_order).yaml"/>
+    <node pkg="map_server" type="map_server" name="map_server" args="$(find rrt_star_rs)/paper_yaml/Case$(arg case_order).yaml"/>
 
     <node pkg="rrt_star_rs" type="rrt_search" name="rrt_search" output="screen">
       <rosparam file ="$(find rrt_star_rs)/config_yaml/config_case$(arg case_order).yaml" command="load"/>

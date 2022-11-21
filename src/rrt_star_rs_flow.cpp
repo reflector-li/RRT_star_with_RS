@@ -54,6 +54,9 @@ void RRTStarRSFlow::Run() {
     if ( best_index != -1) {
         
         path_ = kinodynamic_rrt_star_ptr_->getPath(best_index);
+        double used_time = kinodynamic_rrt_star_ptr_->getBestTime(best_index);
+        ROS_INFO("\033[1;32m --> Total commuting time is %f ms, path length: %fm  \033[0m\n",
+        used_time, calculateDist(path_));
         Trajectory_ptr->SetPoints(path_);
         Trajectory_ptr->SetVelocity();
         Trajectory_ptr->Plot();
@@ -61,6 +64,15 @@ void RRTStarRSFlow::Run() {
     }
     kinodynamic_rrt_star_ptr_->GetRRTtree();
     kinodynamic_rrt_star_ptr_->GetAllPoint();
+}
+
+
+double RRTStarRSFlow::calculateDist(const VectorVec4d &path){
+    double length = 0;
+    for(int i = 1;i<path.size();i++){
+        length += (path[i].head(2) - path[i-1].head(2)).norm();
+    }
+    return length;
 }
 
 
@@ -199,8 +211,6 @@ void RRTStarRSFlow::PublishPointArrow(const VectorVec3d &pt_lists){
 
 }
 
-
-
 void RRTStarRSFlow::PublishStartAndGoalPose(const Vec3d &start_pose, const Vec3d &goal_pose)
 {
     visualization_msgs::MarkerArray pose_array;
@@ -219,7 +229,7 @@ void RRTStarRSFlow::PublishStartAndGoalPose(const Vec3d &start_pose, const Vec3d
     start.color.g = 1.0f;
     start.color.a = 1.0;
 
-    start.scale.x = 2;
+    start.scale.x = 1.5;
     start.scale.y = 0.2;
     start.scale.z = 0.01;
 
@@ -243,7 +253,7 @@ void RRTStarRSFlow::PublishStartAndGoalPose(const Vec3d &start_pose, const Vec3d
     goal.color.g = 0.0f;
     goal.color.a = 1;
 
-    goal.scale.x = 2;
+    goal.scale.x = 1.5;
     goal.scale.y = 0.2;
     goal.scale.z = 0.01;
 
@@ -268,22 +278,22 @@ void RRTStarRSFlow::PublishStartAndGoalPose(const Vec3d &start_pose, const Vec3d
         vehicle.color.g = 0.5f;
         vehicle.color.a = 0.3;
 
-        vehicle.scale.x = 4.689;
-        vehicle.scale.y = 1.942;
+        vehicle.scale.x = 2.55;
+        vehicle.scale.y = 1.55;
         vehicle.scale.z = 0.01;
  
 
         if(i == 0)
         {
-            vehicle.pose.position.x = start_pose[0] + 1.4155*cos(start_pose[2]);
-            vehicle.pose.position.y = start_pose[1] + 1.4155*sin(start_pose[2]);
+            vehicle.pose.position.x = start_pose[0] + 0.95*cos(start_pose[2]);
+            vehicle.pose.position.y = start_pose[1] + 0.95*sin(start_pose[2]);
             vehicle.pose.position.z = 0.0;
             vehicle.pose.orientation = tf::createQuaternionMsgFromYaw(start_pose[2]);
         }
 
         else if(i == 1){
-            vehicle.pose.position.x = goal_pose[0] + 1.4155*cos(goal_pose[2]);
-            vehicle.pose.position.y = goal_pose[1] + 1.4155*sin(goal_pose[2]);
+            vehicle.pose.position.x = goal_pose[0] + 0.95*cos(goal_pose[2]);
+            vehicle.pose.position.y = goal_pose[1] + 0.95*sin(goal_pose[2]);
             vehicle.pose.position.z = 0.0;
             vehicle.pose.orientation = tf::createQuaternionMsgFromYaw(goal_pose[2]);
 

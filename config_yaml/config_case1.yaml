@@ -1,16 +1,16 @@
 # 一般来说， segment_length 需要大于state_grid_resolution-->
-planner/steering_angle: 0.75
-planner/front_hang_length: 0.96
-planner/rear_hang_length: 0.929
-planner/wheel_base: 2.8
-planner/vehicle_width: 1.942
+planner/steering_angle: 0.47
+planner/front_hang_length: 0.325
+planner/rear_hang_length: 0.325
+planner/wheel_base: 1.9
+planner/vehicle_width: 1.55
 
 planner/map_grid_resolution: 0.05
-csv_path: "/home/linkx/lkx_ws/src/rrt_star_rs/benchmarks/Case1.csv"
+csv_path: "/home/linkx/lkx_ws/src/rrt_star_rs/paper_benchmarks/Case1.csv"
 case_order: 1
-planner/safety_distance: 0.02
+planner/safety_distance: 0.00
 planner/move_step_size: 0.5
-planner/max_iter: 200
+planner/max_iter: 400
 planner/connect_circle_dist: 50
 planner/expand_dist: 30
 planner/goal_dist_margin: 0.5

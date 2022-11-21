@@ -45,6 +45,7 @@ struct StateNode {
         state_ = state;
         parent_node_ = nullptr;
         g_cost_ = 0;
+        time = 0;
     }
 
     void Reset() {
@@ -54,6 +55,7 @@ struct StateNode {
     DIRECTION direction_{};
     Vec3d state_;
     double g_cost_{};
+    double time;
 
     StateNode *parent_node_;
     typedef StateNode *Ptr;

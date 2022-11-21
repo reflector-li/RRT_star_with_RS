@@ -7,3 +7,6 @@
 - 完成RRT star with RS 的代码开发，并测试了benchmark中个各个样例，无法完成的实例包括： 
   1. case7, case9 , case13, case19, case20均无法采样出路径。
 - 添加 `velocity_set` 库，主要为了可视化路径结果。
+
+**2022_11_21**
+- 建立 `paper_simulation` 分支，对场景1进行了适配处理，并完成时间和路径长度的计算。

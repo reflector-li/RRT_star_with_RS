@@ -7,6 +7,7 @@
 #include "rs_path.h"
 #include "state_node.h"
 #include "file_tools.h"
+#include "rrt_star_rs/timer.h"
 
 #include<opencv2/core/core.hpp>
 #include<opencv2/highgui/highgui.hpp>
@@ -43,6 +44,7 @@ public:
     void GetAllPoint();
 
     VectorVec4d getPath(int best_index) const;
+    double getBestTime(int best_index) const;
 
     void SetVehicleShape(double front_hang_length, double rear_hang_length, double wheel_base, double vehicle_width);
 
@@ -73,7 +75,7 @@ private:
     std::vector<int> findNearNodes(const StateNode::Ptr &node);
     void resetParent(StateNode::Ptr &node, const std::vector<int> &indexs);
     void rewire(const StateNode::Ptr &node, const std::vector<int> &indexs);
-    void tryGoalPath(const StateNode::Ptr &node);
+    void tryGoalPath(const StateNode::Ptr &node,Timer &used_time);
     int searchBestGoalNode();
 
 

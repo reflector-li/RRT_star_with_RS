@@ -70,7 +70,7 @@ void Trajectory::LoadPoints(const std::string &fileName) {
 }
 
 void Trajectory::SavePoints() {
-  std::string save_path = "/home/linkx/lkx_ws/src/tpcap/Final_path/Traj" +
+  std::string save_path = "/home/linkx/lkx_ws/src/rrt_star_rs/Final_path/Traj" +
                           std::to_string(case_order_) + ".csv";
   std::ofstream out_file(save_path, std::ios::trunc);
   for (auto point : update_points_) {
@@ -383,7 +383,7 @@ void Trajectory::Plot() {
   plt::plot(x, y, "g.");
   plt::plot(x_cusp, y_cusp, "b.");
 
-  std::string save_path = "/home/linkx/lkx_ws/src/tpcap/Final_path/Traj" +
+  std::string save_path = "/home/linkx/lkx_ws/src/rrt_star_rs/Final_path/Traj" +
                           std::to_string(case_order_) + ".png";
   plt::save(save_path, 300);
   plt::show();
