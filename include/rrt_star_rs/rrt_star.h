@@ -38,13 +38,14 @@ public:
     ~RRTStar();
 
     void Init(constants &params);
-    int Search();
+    int Search(double &time);
 
     void GetRRTtree();
     void GetAllPoint();
 
     VectorVec4d getPath(int best_index) const;
     double getBestTime(int best_index) const;
+    int getBestCount(int best_index) const;
 
     void SetVehicleShape(double front_hang_length, double rear_hang_length, double wheel_base, double vehicle_width);
 
@@ -75,7 +76,7 @@ private:
     std::vector<int> findNearNodes(const StateNode::Ptr &node);
     void resetParent(StateNode::Ptr &node, const std::vector<int> &indexs);
     void rewire(const StateNode::Ptr &node, const std::vector<int> &indexs);
-    void tryGoalPath(const StateNode::Ptr &node,Timer &used_time);
+    void tryGoalPath(const StateNode::Ptr &node,Timer &used_time,int count);
     int searchBestGoalNode();
 
 

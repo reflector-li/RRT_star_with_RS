@@ -437,7 +437,7 @@ void RRTStar::rewire(const StateNode::Ptr &node, const std::vector<int> &indexs)
     }
 }
 
-void RRTStar::tryGoalPath(const StateNode::Ptr &node, Timer &used_time){
+void RRTStar::tryGoalPath(const StateNode::Ptr &node, Timer &used_time,int count){
     double length;
     VectorVec3d temp_path = rs_path_ptr_->GetRSPath(node->state_,goal_state_,params_.move_step_size,length);
     if(!checkPathCollision(temp_path)){
@@ -447,7 +447,8 @@ void RRTStar::tryGoalPath(const StateNode::Ptr &node, Timer &used_time){
         goal_node->g_cost_ = node->g_cost_ + length;
         goal_node->intermediate_states_ = temp_path;
         goal_node->parent_node_ = node;
-        goal_node->time = used_time.End();
+        goal_node->time_ = used_time.End();
+        goal_node->count_ = count;
         RRTtree.emplace_back(goal_node);
     }
 }
@@ -477,11 +478,11 @@ int RRTStar::searchBestGoalNode(){
     return best_index;
 }
 
-int RRTStar::Search(){
+int RRTStar::Search(double &time){
   Timer used_time;
   RRTtree.push_back(root_node_ptr_);
-  tryGoalPath(root_node_ptr_,used_time);
   int count = 0;
+  tryGoalPath(root_node_ptr_,used_time,count);
   while(count<params_.max_iter){
     std::cout<<"Iter: "<<count<<", number of nodes: "<<RRTtree.size()<<std::endl;
     
@@ -493,11 +494,14 @@ int RRTStar::Search(){
       resetParent(new_node,near_indexes); 
       RRTtree.emplace_back(new_node);
       rewire(new_node,near_indexes);
-      tryGoalPath(new_node,used_time);
+      tryGoalPath(new_node,used_time,count);
     }
     count++;
   }
   std::cout<<"reached max iteration"<<std::endl;
+  time = used_time.End();
+  std::cout<<"search used time: "<<time<<std::endl;
+
 
   int last_index = searchBestGoalNode();
   if(last_index != -1)
@@ -507,8 +511,11 @@ int RRTStar::Search(){
 
 
 double RRTStar::getBestTime(int best_index) const{
-    return RRTtree[best_index]->time;
+    return RRTtree[best_index]->time_;
+}
 
+int RRTStar::getBestCount(int best_index) const{
+    return RRTtree[best_index]->count_;
 }
 
 VectorVec4d RRTStar::getPath(int best_index ) const{

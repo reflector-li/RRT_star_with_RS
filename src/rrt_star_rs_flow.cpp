@@ -49,14 +49,15 @@ RRTStarRSFlow::RRTStarRSFlow(ros::NodeHandle &nh) {
 void RRTStarRSFlow::Run() {
      
     kinodynamic_rrt_star_ptr_->Init(constants_);
-    int best_index = kinodynamic_rrt_star_ptr_->Search();
+    double used_time = 0;
+    int best_index = kinodynamic_rrt_star_ptr_->Search(used_time);
 
     if ( best_index != -1) {
-        
         path_ = kinodynamic_rrt_star_ptr_->getPath(best_index);
-        double used_time = kinodynamic_rrt_star_ptr_->getBestTime(best_index);
-        ROS_INFO("\033[1;32m --> Total commuting time is %f ms, path length: %fm  \033[0m\n",
-        used_time, calculateDist(path_));
+        // double used_time = kinodynamic_rrt_star_ptr_->getBestTime(best_index);
+        int used_count = kinodynamic_rrt_star_ptr_->getBestCount(best_index);
+        ROS_INFO("\033[1;32m --> Total commuting time is %f ms, path length: %fm, count: %d. \033[0m\n",
+        used_time, calculateDist(path_),used_count);
         Trajectory_ptr->SetPoints(path_);
         Trajectory_ptr->SetVelocity();
         Trajectory_ptr->Plot();
