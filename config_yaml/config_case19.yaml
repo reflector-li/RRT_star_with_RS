@@ -10,7 +10,7 @@ csv_path: "/home/linkx/lkx_ws/src/tpcap/paper_benchmarks/Case19.csv"
 case_order: 19
 planner/safety_distance: 0.00
 planner/move_step_size: 0.5
-planner/max_iter: 2800
+planner/max_iter: 1800
 planner/connect_circle_dist: 50
 planner/expand_dist: 30
 planner/goal_dist_margin: 0.5

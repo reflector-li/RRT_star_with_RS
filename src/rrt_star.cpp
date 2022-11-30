@@ -58,6 +58,7 @@ void RRTStar::Init(constants &params)
     start_state_ = params_.start_state_original;
 
     root_node_ptr_ = new StateNode(start_state_);
+    root_node_ptr_->intermediate_states_.push_back(start_state_);
 
     int obs_num = static_cast<int>(map_raw_data[6]);
     ROS_INFO("scene has %d obstacles",obs_num);

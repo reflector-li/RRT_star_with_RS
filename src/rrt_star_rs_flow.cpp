@@ -62,6 +62,7 @@ void RRTStarRSFlow::Run() {
         Trajectory_ptr->SetVelocity();
         Trajectory_ptr->Plot();
         Trajectory_ptr->PlotVelocity();
+        Trajectory_ptr->SavePoints();
     }
     kinodynamic_rrt_star_ptr_->GetRRTtree();
     kinodynamic_rrt_star_ptr_->GetAllPoint();
