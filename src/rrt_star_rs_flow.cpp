@@ -58,7 +58,9 @@ void RRTStarRSFlow::Run() {
         int used_count = kinodynamic_rrt_star_ptr_->getBestCount(best_index);
         ROS_INFO("\033[1;32m --> Total commuting time is %f ms, path length: %fm, count: %d. \033[0m\n",
         used_time, calculateDist(path_),used_count);
+        
         Trajectory_ptr->SetPoints(path_);
+        Trajectory_ptr-> resampleWaypoint(0.5);
         Trajectory_ptr->SetVelocity();
         Trajectory_ptr->Plot();
         Trajectory_ptr->PlotVelocity();

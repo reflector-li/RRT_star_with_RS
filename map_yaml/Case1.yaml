@@ -1,0 +1,9 @@
+image: ../map/Case1.png
+resolution: 0.050000
+origin:
+  - -22.446594963062601
+  - -27.2337229349077
+  - 0
+occupied_thresh: 0.1
+free_thresh: 0.05
+negate: 0

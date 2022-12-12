@@ -1,19 +1,57 @@
-## 开发日志
-**2022_11_15**
-- 正在进行函数 `tryGoalPath()` 的开发，争取今天完成开发，并且进行调试；
-- 完成基本框架搭建，解决了编译bug。目前存在当迭代次数过大时发生错误，怀疑是越界或者指针使用与释放的问题。
+# RRT\* with Reeds-Shepp Curve
+## Introduction
+RRT\* is an asymptotically optimal path planning algorithm. The planned path can meet the kinetics requirements of the car when using RS curve to connect the sampling points. But there is currently no suitable open source project developed based on C++ and ROS, this project is open source to help those who need it. 
 
-**2022_11_16**
-- 完成RRT star with RS 的代码开发，并测试了benchmark中个各个样例，无法完成的实例包括： 
-  1. case7, case9 , case13, case19, case20均无法采样出路径。
-- 添加 `velocity_set` 库，主要为了可视化路径结果。
+**Project file description:**
+- `app/search.cpp` is the main file of node.
+- Generate maps using OpenCV, and map data is saved by csv file in `benchmarks/`.
+- The configuration files for each scene are stored in `config_yaml/`.
+- `map/` and `map_yaml/` store visualization files for rviz. 
+- `velocity_set.cpp` performs post-processing on the generation path, including sampling, visualization, saving, etc.
 
-**2022_11_21**
-- 建立 `paper_simulation` 分支，对场景1进行了适配处理，并完成时间和路径长度的计算。
+**Demo:**
+1. case1:
 
-**2022_11_28**
-- 统一使用 `tpcap` 功能包中的 paper_benchmarks，不再单独复制到本包，以方便测试。
+  <left class="half">
+    <img src="./figures/case1.png" width="400"/>
+  </left>
+
+2. case2:
+
+  <left class="half">
+      <img src="./figures/case2.png" width="400"/>
+  </left>
 
 
-**2022_11_30**
-- 修改 `getPath()` 方法，将起点的坐标添加进其中，完善了路径长度计算。
+## Dependencies:
+- ROS. Melodic or Noetic can be satisfied.
+- Eigen3
+- glog
+- yaml-cpp
+- matplotlib-cpp(included in the `./include/`, no need to install separately)
+- openCV
+
+## Build:
+```shell
+# in your ros workspace, for example: your_ws/src
+git clone git@github.com:reflector-li/rrt_star_rs.git
+cd ..
+catkin_make
+```
+
+## Usage
+```shell
+# in your ros workspace, for example: your_ws/
+source devel/setup.bash
+roslaunch rrt_star_rs rrt_search.launch
+```
+
+## Reference
+- [Hybrid_A_Star](https://github.com/zm0612/Hybrid_A_Star)
+   
+  The code framework and obstacle detection strategy of this project refer to it.
+
+- [PythonRobotics](https://github.com/Archer0v0/PythonRobotics#rrt-with-reeds-shepp-path)
+   
+   
+

@@ -70,6 +70,9 @@ class Trajectory {
                        KeyVal &curve_list);
   void changeVelSign(std::pair<const int, std::pair<int, Dir>> &path);
   void SetTime();
+  void calcCurvePara(std::vector<waypoint> &curve_points);
+  void resampleOnStraight(std::vector<waypoint> &vecTraj,std::vector<waypoint> &curve_points,double resample_interval);
+  void resampleOnCurve(std::vector<waypoint> &points,std::vector<waypoint> &curve_points,double resample_interval);
 
  public:
   std::vector<waypoint> points_;
@@ -92,9 +95,6 @@ class Trajectory {
   //for resample 
   void resampleWaypoint(const double resample_interval);
   const double calcPathLength(const std::vector<waypoint> &path) const;
-  void calcCurvePara(std::vector<waypoint> &curve_points);
-  void resampleOnStraight(std::vector<waypoint> &vecTraj,std::vector<waypoint> &curve_points,double resample_interval);
-  void resampleOnCurve(std::vector<waypoint> &points,std::vector<waypoint> &curve_points,double resample_interval);
   void getKappaDir();
   double Mod2Pi(const double &x);
   void PlotQuiver();
